@@ -42,12 +42,18 @@ check_cmd() {
     which $1 > /dev/null 2>&1 || die_user "$package_name is not installed!"
 }
 
+conf_file=~/.vmctl.json
+
+if [[ $1 == list ]]; then
+    jq  -r '.[] | .name,.type' $conf_file | sed 'N;s/\n/ /'
+    exit
+fi
+
 ## Main Procedure
 (($# < 2)) && die_user "usage: vmctl command server-name"
 
 cmd=$1
 server_name=$2
-conf_file=~/.vmctl.json
 server_type=$(jq -r --arg name $server_name '.[] | if (.name == $name) then .type else empty end' $conf_file)
 
 # check if the server exists
