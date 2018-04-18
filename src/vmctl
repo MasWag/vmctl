@@ -85,8 +85,11 @@ jq -r --arg name $server_name '.[] | if (.name == $name) then . else empty end' 
                     restart)
                         xargs aws ec2 reboot-instances --instance-ids
                         ;;
+                    ip)
+                        awk '{printf "aws ec2 describe-instances --query \"Reservations[*].Instances[*].PublicIpAddress|[0][0]\"  --filter \"Name=instance-id,Values=\"%s %s %s",$1, $2, $3}' | bash | xargs
+                        ;;
                     save)
-                        echo 'EC2 insatance cannot be saved!'
+                        die_user 'EC2 insatance cannot be saved!'
                         ;;
                     status)
                         awk '{printf "aws ec2 describe-instances %s %s | jq -r \".Reservations[].Instances[] | if (.InstanceId ==\\\"%s\\\") then .State.Name else empty end\"\n",$2,$3,$1}' | bash
