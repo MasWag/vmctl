@@ -49,12 +49,19 @@ if [[ $1 == list ]]; then
     exit
 fi
 
+usage_message="usage: vmctl <command> <server_name>"
+
 ## Main Procedure
-(($# < 2)) && die_user "usage: vmctl command server-name"
+(($# < 2)) && die_user $usage_message
 
 cmd=$1
 server_name=$2
 server_type=$(jq -r --arg name $server_name '.[] | if (.name == $name) then .type else empty end' $conf_file)
+
+if [[ $cmd == help ]]; then
+    echo $usage_message
+    return 0
+fi
 
 # check if the server exists
 [[ -z $server_type ]] && die_user "Server $server_name is not found!"
