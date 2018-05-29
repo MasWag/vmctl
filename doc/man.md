@@ -36,3 +36,44 @@ The tool **vmctl** provides basic operations for multiple virtual machines. Curr
 
 **save**
 : Save the virtual machine (**Virtual Box** only).
+
+# EXIT STATUS
+
+0
+: if there is no error.
+
+1
+: if vmctl aborted because of a user's error
+
+2
+: if vmctl aborted because of an implementation error
+
+
+# FILES
+
+~/.vmctl.json
+: The configuration file of the virtual machines. See README.md for the file format.
+
+# EXAMPLE
+
+Assume `reimu` is the name of the virtual machine. 
+
+We can turn on / turn off / restart `reimu` by the following.
+
+`vmctl start reimu`
+
+`vmctl stop reimu`
+
+`vmctl restart reimu`
+
+We can see the status of `reimu` (e.g., if it is running) by the following.
+
+`vmctl status reimu`
+
+If `reimu` is an instance of AWS EC2, we can get the global IP address of `reimu` by the following. If `reimu` is not an instance of AWS EC2, it aborts.
+
+`vmctl ip reimu`
+
+If `reimu` is an instance of Virtual Box, we can save the status of `reimu` by the following. If `reimu` is not an instance of Virtual Box, it aborts.
+
+`vmctl save reimu`
