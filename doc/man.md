@@ -1,6 +1,6 @@
 % VMCTL(1)
 % Masaki Waga
-% May 2018
+% July 2019
 
 # NAME
 
@@ -8,7 +8,7 @@ vmctl - A uniform interface to multiple virtual machines
 
 # SYNOPSIS
 
-    vmctl <command> <server_name>
+    vmctl <command> <server_name> [<server_name>...]
 
 # DESCRIPTION
 

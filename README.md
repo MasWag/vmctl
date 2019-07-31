@@ -8,6 +8,12 @@ The following types of machines are supported.
 * AWS EC2
 * Virtual Box
 
+Usage
+-----
+
+See [usage manual](./doc/man.md).
+
+
 Requirement
 -----------
 
