@@ -28,6 +28,14 @@ Requirement
 Install
 -------
 
+### Using Homebrew
+
+```bash
+brew install MasWag/vmctl/vmctl
+```
+
+### From source
+
 1. Put your configuration at ~/vmctl.json
 2. Move *vmctl* to a PATH-ed place.
 3. Setup vmctl_completion.bash
