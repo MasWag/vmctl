@@ -78,7 +78,104 @@ while (($# >= 2)); do
             check_cmd VBoxManage VirtualBox
             ;;
     esac
-
+    printf "%s %s\n" $server_type $server_name
+done | 
+    awk '{kind[$1]=kind[$1]" "$2}END{for (key in kind){print key,kind[key]}}' |
+    while read -r line; do
+        readonly server_type=${line%% *}
+        readonly server_names=${line#* }
+        case $server_type in
+            ec2)
+                case $cmd in
+                    start)
+                        cmd_name=start-instances
+                        for server_name in $server_names; do
+                            jq -r --arg name $server_name '.[] | if (.name == $name) then . else empty end' $conf_file            
+                            printf ","
+                        done |
+                            cat <(printf "[") - <(printf "]") |
+                            sed 's/,]/]/' |
+                            jq -r '.[].instance_id' |
+                            xargs aws ec2 "$cmd_name" --instance-ids
+                        ;;
+                    stop)
+                        cmd_name=stop-instances
+                        for server_name in $server_names; do
+                            jq -r --arg name $server_name '.[] | if (.name == $name) then . else empty end' $conf_file            
+                            printf ","
+                        done |
+                            cat <(printf "[") - <(printf "]") |
+                            sed 's/,]/]/' |
+                            jq -r '.[].instance_id' | 
+                            xargs aws ec2 "$cmd_name" --instance-ids
+                        ;;
+                    restart)
+                        cmd_name=reboot-instances
+                        for server_name in $server_names; do
+                            jq -r --arg name $server_name '.[] | if (.name == $name) then . else empty end' $conf_file            
+                            printf ","
+                        done |
+                            cat <(printf "[") - <(printf "]") |
+                            sed 's/,]/]/' |
+                            jq -r '.[].instance_id' |
+                            xargs aws ec2 "$cmd_name" --instance-ids
+                        ;;
+                    ip)
+                        for server_name in $server_names; do
+                            jq -r --arg name $server_name '.[] | if (.name == $name) then . else empty end' $conf_file
+                            printf ","
+                        done |
+                            cat <(printf "[") - <(printf "]") |
+                            sed 's/,]/]/'|
+                            jq -r '.[].instance_id' |
+                            xargs aws ec2 describe-instances --query "Reservations[*].Instances[*].PublicIpAddress[]"  --instance-ids 
+                        ;;
+                    save)
+                        die_user 'EC2 insatance cannot be saved!'
+                        ;;
+                    status)
+                        for server_name in $server_names; do
+                            jq -r --arg name $server_name '.[] | if (.name == $name) then . else empty end' $conf_file
+                            printf ","
+                        done |
+                            cat <(printf "[") - <(printf "]") |
+                            sed 's/,]/]/'|
+                            jq -r '.[].instance_id' |
+                            xargs aws ec2 describe-instances --query "Reservations[*].Instances[*].State.Name[]"  --instance-ids | jq -r '.[]'
+                        ;;
+                    *)
+                        die_user "Unsupported command: $cmd for ec2"
+                esac
+                ;;
+            virtual_box)
+                for server_name in $server_names; do
+                    jq -r --arg name $server_name '.[] | if (.name == $name) then .instance_id else empty end' $conf_file            
+                done |
+                    case $cmd in
+                        start)
+                            xargs -I{} VBoxManage startvm {} --type headless
+                            ;;
+                        stop)
+                            xargs -I{} VBoxManage controlvm {} poweroff
+                            ;;
+                        restart)
+                            xargs -I{} VBoxManage controlvm {} reset
+                            ;;
+                        save)
+                            xargs -I{} VBoxManage controlvm {} savestate
+                            ;;
+                        status)
+                            xargs -I{} VBoxManage showvminfo {} | awk '/State:/&&sub("State: *","")'
+                            ;;
+                        *)
+                            die_user "Unsupported command: $cmd for virtual_box"
+                    esac
+                ;;
+            *)
+                die_user "Unsupported server type: $server_type"
+        esac
+    done
+exit
     # extract the config of the operated server
     jq -r --arg name $server_name '.[] | if (.name == $name) then . else empty end' $conf_file |
         case $server_type in
