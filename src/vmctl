@@ -128,7 +128,7 @@ done |
                             cat <(printf "[") - <(printf "]") |
                             sed 's/,]/]/'|
                             jq -r '.[].instance_id' |
-                            xargs aws ec2 describe-instances --query "Reservations[*].Instances[*].PublicIpAddress[]"  --instance-ids 
+                            xargs aws ec2 describe-instances --query "Reservations[*].Instances[*].PublicIpAddress[]"  --instance-ids | jq -r '.[]'
                         ;;
                     save)
                         die_user 'EC2 insatance cannot be saved!'
