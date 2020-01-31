@@ -17,7 +17,7 @@ See [usage manual](./doc/man.md).
 Requirement
 -----------
 
-* Bash
+* sh
 * jq
 * sed
 * Grep
