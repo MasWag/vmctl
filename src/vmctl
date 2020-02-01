@@ -16,23 +16,68 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with vmctl.  If not, see <http://www.gnu.org/licenses/>.
+#
+#****h* vmctl/vmctl
+# NAME
+#  vmctl
+# SYNOPSIS
+#  vmctl <command> <server_name> [<server_name>...]
+# DESCRIPTION
+#  A uniform interface to multiple virtual machines
+#
+# EXAMPLE
+#  Assume `reimu' is the name of the virtual machine. 
+#
+#  > vmctl list
+#  > vmctl start reimu
+#  > vmctl stop reimu
+#  > vmctl restart reimu
+#  > vmctl status reimu
+#
+# PORTABILITY
+#  We need jq <https://stedolan.github.io/jq/> and the commands to manipulates the instance.
+#******
 
-
-#!@brief abort when user error
-# @args message
+#****f* vmctl/die_user
+# NAME
+#  die_user
+# SYNOPSIS
+#  die_user <message>
+# DESCRIPTION
+#  Abort due to a user error
+# EXAMPLE
+#  die_user "Invalid argument"
+#******
 die_user() {
     echo "$1" > /dev/stderr
     exit 1
 }
-#!@brief abort when implementation error
-# @args message
+
+#****f* vmctl/die_impl
+# NAME
+#  die_impl
+# SYNOPSIS
+#  die_impl <message>
+# DESCRIPTION
+#  Abort due to an implementation error
+# EXAMPLE
+#  die_impl "Unimplemented"
+#******
 die_impl() {
     echo "$1" > /dev/stderr
     exit 2
 }
-#!@brief check if a command is installed
-# @args command package-name
-# @notice If package-name is omitted, command is used as the package-name
+
+#****f* vmctl/check_cmd
+# NAME
+#  check_cmd
+# SYNOPSIS
+#  check_cmd <command> <package-name>
+# DESCRIPTION
+#  check if a <command> is installed. If <package-name> is omitted, <command> is used as the <package-name>
+# EXAMPLE
+#  check_cmd aws aws-cli
+#******
 check_cmd() {
     if [ $# -lt 2 ]; then
         package_name=$1
@@ -44,8 +89,16 @@ check_cmd() {
 
 CONF_FILE=~/.vmctl.json
 
-#!@brief the main execution for AWS EC2
-# @args instance-name1 instance-name2...
+#****f* vmctl/exec_ec2
+# NAME
+#  exec_ec2
+# SYNOPSIS
+#  exec_ec2 <instance-name1> <instance-name2>...
+# DESCRIPTION
+#  the main execution for AWS EC2
+# EXAMPLE
+#  exec_ec2 reimu marisa chirno
+#******
 exec_ec2() {
     for server_name in "$@"; do
         jq -r --arg name "$server_name" '.[] | if (.name == $name) then .instance_id, if (.profile == null) then "default" else .profile end else empty end' $CONF_FILE
@@ -82,8 +135,16 @@ exec_ec2() {
         esac
 }
 
-#!@brief the main execution for VirtualBox
-# @args instance-name1 instance-name2...
+#****f* vmctl/exec_virtual_box
+# NAME
+#  exec_virtual_box
+# SYNOPSIS
+#  exec_virtual_box <instance-name1> <instance-name2>...
+# DESCRIPTION
+#  the main execution for VirtualBox
+# EXAMPLE
+#  exec_virtual_box chen ran yukari
+#******
 exec_virtual_box() {
     for server_name in "$@"; do
         jq -r --arg name "$server_name" '.[] | if (.name == $name) then .instance_id else empty end' $CONF_FILE            
@@ -109,6 +170,7 @@ exec_virtual_box() {
         esac
 }
 
+## When the first argument is `list', we show the instance names with instance types
 if [ "$1" = list ]; then
     jq  -r '.[] | .name,.type' $CONF_FILE | sed 'N;s/\n/ /'
     exit
@@ -144,8 +206,8 @@ while [ $# -ge 2 ]; do
             ;;
     esac
     printf "%s %s\n" "$server_type" "$server_name"
-done | 
-    awk '{kind[$1]=kind[$1]" "$2}END{for (key in kind){print key,kind[key]}}' |
+done | # Here, we have a stream of <server_type> <server_name>
+    awk '{kind[$1]=kind[$1]" "$2}END{for (key in kind){print key,kind[key]}}' | # Here, we have a stream of  <server_type> <server_name1>  <server_name2>...
     while read -r line; do
         type=${line%% *}
         names=${line#* }

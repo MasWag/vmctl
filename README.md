@@ -75,3 +75,12 @@ A complete sample is as follows.
     }
 ]
 ```
+
+Developer Documentation
+-----------------------
+
+You can generate a document of the code using [ROBODoc](https://rfsber.home.xs4all.nl/Robo/robodoc.html). An example is as follows.
+
+```sh
+robodoc --src src/vmctl --doc vmctl --singlefile --html
+```
