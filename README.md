@@ -1,6 +1,9 @@
 vmctl
 =====
 
+[![Static analysis](https://github.com/MasWag/vmctl/workflows/Static%20analysis/badge.svg)](https://github.com/MasWag/vmctl/actions?query=workflow%3A%22Static+analysis%22)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE)
+
 A uniform interface to multiple virtual machines
 
 The following types of machines are supported.
