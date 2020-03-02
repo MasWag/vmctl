@@ -107,19 +107,19 @@ exec_ec2() {
         case $cmd in
             start)
                 awk -v cmd_name=start-instances '{kind[$2]=kind[$2]" "$1}END{for (key in kind){printf "aws ec2 %s --profile %s --instance-ids %s\n", cmd_name, key, kind[key]}}' | 
-                    xargs -I{} sh -c {}
+                    sh
                 ;;
             stop)
                 awk -v cmd_name=stop-instances '{kind[$2]=kind[$2]" "$1}END{for (key in kind){printf "aws ec2 %s --profile %s --instance-ids %s\n", cmd_name, key, kind[key]}}' | 
-                    xargs -I{} sh -c {}
+                    sh
                 ;;
             restart)
                 awk -v cmd_name=reboot-instances '{kind[$2]=kind[$2]" "$1}END{for (key in kind){printf "aws ec2 %s --profile %s --instance-ids %s\n", cmd_name, key, kind[key]}}' | 
-                    xargs -I{} sh -c {}
+                    sh
                 ;;
             ip)
-                awk '{kind[$2]=kind[$2]" "$1}END{for (key in kind){printf "aws ec2 describe-instances --query \"Reservations[*].Instances[*].PublicIpAddress[]\" --profile %s --instance-ids %s\n", key, kind[key]}}' | 
-                    xargs -I{} sh -c {} |
+                awk '{kind[$2]=kind[$2]" "$1}END{for (key in kind){printf "aws ec2 describe-instances --query \"Reservations[*].Instances[*].PublicIpAddress[]\" --profile %s --instance-ids %s\n", key, kind[key]}}' |
+                    sh |
                     jq -r '.[]'
                 ;;
             save)
@@ -127,7 +127,7 @@ exec_ec2() {
                 ;;
             status)
                 awk '{kind[$2]=kind[$2]" "$1}END{for (key in kind){printf "aws ec2 describe-instances --query \"Reservations[*].Instances[*].State.Name[]\" --profile %s --instance-ids %s\n", key, kind[key]}}' | 
-                    xargs -I{} sh -c {} |
+                    sh |
                     jq -r '.[]'
                 ;;
             *)
