@@ -1,6 +1,6 @@
 % VMCTL(1)
 % Masaki Waga
-% July 2019
+% May 2023
 
 # NAME
 
@@ -12,7 +12,7 @@ vmctl - A uniform interface to multiple virtual machines
 
 # DESCRIPTION
 
-The tool **vmctl** provides basic operations for multiple virtual machines. Currently it supports **AWS EC2** and **Virtual Box**.
+The tool **vmctl** provides basic operations for multiple virtual machines. Currently it supports **AWS EC2**, **Google Compute Engine (GCE)**, and **Virtual Box**.
 
 # COMMANDS
 
@@ -32,7 +32,7 @@ The tool **vmctl** provides basic operations for multiple virtual machines. Curr
 : Show the status of the virtual machine.
 
 **ip**
-: Get the public IP address of the virtual machine (**AWS EC2** only).
+: Get the public IP address of the virtual machine (**AWS EC2** and **GCE** only).
 
 **save**
 : Save the virtual machine (**Virtual Box** only).
@@ -70,7 +70,7 @@ We can see the status of `reimu` (e.g., if it is running) by the following.
 
 `vmctl status reimu`
 
-If `reimu` is an instance of AWS EC2, we can get the global IP address of `reimu` by the following. If `reimu` is not an instance of AWS EC2, it aborts.
+If `reimu` is an instance of AWS EC2 or GCE, we can get the global IP address of `reimu` by the following. If `reimu` is not an instance of AWS EC2 or GCE, it aborts.
 
 `vmctl ip reimu`
 
