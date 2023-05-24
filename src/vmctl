@@ -135,6 +135,48 @@ exec_ec2() {
         esac
 }
 
+#****f* vmctl/exec_gce
+# NAME
+#  exec_gce
+# SYNOPSIS
+#  exec_gce <instance-name1> <instance-name2>...
+# DESCRIPTION
+#  the main execution for AWS EC2
+# EXAMPLE
+#  exec_gce reimu marisa chirno
+#******
+exec_gce() {
+    # We do not expand the variables because they are variables in AWK
+    # shellcheck disable=SC2016
+    AWK_COMMAND='{kind[$2,$3]=kind[$2,$3]" "$1}END{for (key in kind){split(key,sep,SUBSEP);printf "gcloud compute instances %s %s --zone %s --project %s\n", cmd_name, kind[key],sep[1],sep[2]}}'
+    for server_name in "$@"; do
+        jq -r --arg name "$server_name" '.[] | if (.name == $name) then .instance_id,.zone,.project else empty end' $CONF_FILE
+    done |
+        xargs -n 3 |
+        case $cmd in
+            start)
+                awk -v cmd_name=start "$AWK_COMMAND" | sh
+                ;;
+            stop)
+                awk -v cmd_name=stop "$AWK_COMMAND" | sh
+                ;;
+            restart)
+                awk -v cmd_name=reset "$AWK_COMMAND" | sh
+                ;;
+            ip)
+                awk -v cmd_name="describe --format='value(networkInterfaces[0].accessConfigs[0].natIP)'" '{printf "gcloud compute instances %s %s --zone %s --project %s\n", cmd_name, $1,$2,$3}' | sh
+                ;;
+            save)
+                die_user 'GCE insatance cannot be saved!'
+                ;;
+            status)
+                awk -v cmd_name="describe --format='value(status)'" '{printf "gcloud compute instances %s %s --zone %s --project %s\n", cmd_name, $1,$2,$3}' | sh
+                ;;
+            *)
+                die_user "Unsupported command: $cmd for GCE"
+        esac
+}
+
 #****f* vmctl/exec_virtual_box
 # NAME
 #  exec_virtual_box
@@ -201,6 +243,9 @@ while [ $# -ge 2 ]; do
         ec2)
             check_cmd aws aws-cli
             ;;
+        gce)
+            check_cmd gcloud
+            ;;
         virtual_box)
             check_cmd VBoxManage VirtualBox
             ;;
@@ -217,6 +262,11 @@ done | # Here, we have a stream of <server_type> <server_name>
                 # This word splitting is intentional.
                 # shellcheck disable=SC2086
                 exec_ec2 $names
+                ;;
+            gce)
+                # This word splitting is intentional.
+                # shellcheck disable=SC2086
+                exec_gce $names
                 ;;
             virtual_box)
                 # This word splitting is intentional.
